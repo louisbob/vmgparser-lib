@@ -8,6 +8,7 @@ public class VmgTokenType {
 	static VmgTokenType NUMBER 		= new VmgTokenType("Number", 		null);
 	static VmgTokenType CARRIAGE 	= new VmgTokenType("Carriage", 		"\\r"); //0x0d
 	static VmgTokenType LINEFEED 	= new VmgTokenType("LineFeed", 		"\\n"); //0x0a
+	static VmgTokenType CRLF		= new VmgTokenType("CRLF", 			"\\r\\n");
 	static VmgTokenType SPACE	 	= new VmgTokenType("Space", 		" ");
 	static VmgTokenType EOF 		= new VmgTokenType("Eof", 			"Eof");
 	

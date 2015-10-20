@@ -20,27 +20,6 @@ public class VmgParser {
 		opt_stack = new Stack<String>();
 	}
 	
-	/*
-	public void first_pass() {
-		//TODO: re-apply rules until no modification on the list is done.
-		for(int i = 0; i < l_token.size()-1; i++) {
-			VmgToken c_tok = l_token.get(i);
-			VmgToken n_tok = l_token.get(i+1);
-			
-			//Rule 1 : IDENTIFIER := IDENTIFIER STRING
-			if(c_tok.type == VmgTokenType.IDENTIFIER && n_tok.type == VmgTokenType.STRING) {
-				c_tok.content += n_tok.content;
-				l_token.remove(i+1);
-			}
-		}
-		
-		//VERBOSE
-		System.out.println("=== FIRST PASS");
-		for (VmgToken vmgToken : l_token) {
-			System.out.println(vmgToken.toString());
-		}
-	}*/
-	
 	public void expect(VmgTokenType toktype) {
 		if(found(toktype)) {
 			return;
@@ -63,22 +42,48 @@ public class VmgParser {
 		return false;
 	}
 	
-	/*
-	public void statement () {
-		if (found(VmgTokenType.IDENTIFIER)) {
-			expect(VmgTokenType.SYMBOL)
-		}
-	}*/
-	
 	public void rules() {
 		
 		if(found(VmgTokenType.ID_BEGIN)) {
 			expect(VmgTokenType.SYM_COLON);
 			
-			//Next token will be the environnement name (ex : VMSG, VCAR, VENV, etc...). Store the name into the stack.
+			//Next token will be the environnement name (ex : VMSG, VCARD, VENV, etc...). Store the name into the stack.
 			expect(VmgTokenType.IDENTIFIER);
+			
 			env_stack.push(p_tok.content);
-			expect(VmgTokenType.LINEFEED);
+			
+			//check if vmsg
+			if (p_tok.content.equals("VMSG")) {
+				
+				if(!found(VmgTokenType.CRLF))
+					expect(VmgTokenType.LINEFEED);
+				
+				expect(VmgTokenType.ID_VERSION);
+				expect(VmgTokenType.SYM_COLON);
+				expect(VmgTokenType.NUMBER);
+				
+				if(!found(VmgTokenType.CRLF))
+					expect(VmgTokenType.LINEFEED);
+				//STORE VERSION NUMBER HERE.
+				
+				System.out.println("_VMSG_");
+			} else 
+				
+			if (p_tok.content.equals("VCARD")) {
+				expect(VmgTokenType.CRLF);
+				expect(VmgTokenType.ID_VERSION);
+				expect(VmgTokenType.SYM_COLON);
+				expect(VmgTokenType.NUMBER);
+				//STORE VERSION NUMBER HERE.
+				
+				//Todo: regarding version of vcard, differences...
+				expect(VmgTokenType.CRLF);
+				System.out.println("_VCARD_");
+			} else {
+				if(!found(VmgTokenType.CRLF))
+					expect(VmgTokenType.LINEFEED);
+			}
+
 			return;
 			
 		} else 
@@ -96,96 +101,111 @@ public class VmgParser {
 					+ p_tok.content 
 					+ ")" );
 			}
-			expect(VmgTokenType.LINEFEED);
+			
+			if(s.equals("VCARD")) 
+				expect(VmgTokenType.CRLF);
+			else
+				if(!found(VmgTokenType.CRLF))
+					expect(VmgTokenType.LINEFEED);
 			return;
 			
 		} else 
 			
-		if(found(VmgTokenType.LINEFEED)) {
+		if(found(VmgTokenType.LINEFEED) || found(VmgTokenType.CRLF)) {
 			//Simply pass the character : nothing interesting to process here.
-			return;
-		} else 
-		
-		if(found(VmgTokenType.ID_VERSION)) {
-			expect(VmgTokenType.SYM_COLON);
-			//Do some stuff
-			expect(VmgTokenType.NUMBER);
-			expect(VmgTokenType.LINEFEED);
 			return;
 		} else 
 			
 		if(found(VmgTokenType.IDENTIFIER)) {
+			String params = null;
+			String id_name;
+			ParamType param = null;
 			
-			//Check if it is simple identifier ( UID:VALUE)
-			if(found_nostep(VmgTokenType.SYM_COLON)) {
-				//Store the identifier name:
-				String id_name = p_tok.content;
-				String id_val  = "";
+			//contentline = [group "."] name *(";" param) ":" value CRLF
+			id_name = p_tok.content;
+			System.out.println("IDENT  :    " + id_name);
+			
+			//Check for parameters
+			if(found(VmgTokenType.SYM_SCOLON)) {
+				params = c_tok.content;
 				getToken();
 				
-				//Check if we have content (could have case with IDENTIFIER:\r)
-				
-				while(!found(VmgTokenType.LINEFEED)) { //Retrieve data until cariage return
+				//Get the param list
+				while(!found(VmgTokenType.SYM_COLON)) { //Retrieve data until cariage return
+					params += c_tok.content;
 					getToken();
-					id_val += p_tok.content;
 				}
-				//TODO : add count iteration or eof checker to avoid infinite loop.
 				
-				System.out.println(id_name + "<=" + id_val);
+				//Process params:
+				param = process_params(params);
 				
-				//expect(VmgTokenType.LINEFEED) handled by found option
+			} else {
+				expect(VmgTokenType.SYM_COLON);
+			}
 				
-			} else 
 			
-			//Check if it is a composed identifier (UID;CHARSET=UTF-8:VALUE)
-			if(found_nostep(VmgTokenType.SYM_SCOLON)) {
-				String id_name = p_tok.content;
-				String id_val  = "";
-				getToken();
-				
-				while(!found(VmgTokenType.LINEFEED)) { //Retrieve data until cariage return
-					getToken();
-					id_val += p_tok.content;
+			//READ value
+			String id_val  = "";
+			
+			while(true) {
+				//Check previous caracter
+				if(found_nostep(VmgTokenType.CRLF)) { //Retrieve data until cariage return
+					if(p_tok.type != VmgTokenType.SYM_EQUAL)
+						break;
+					else if (!param.quoted_printable)
+						break;
 				}
 				
-				//TODO process options:
+				if(found_nostep(VmgTokenType.LINEFEED))
+					break;
 				
-				//Display result:
-				System.out.println(id_name + "<=" + id_val);
+				getToken();
+				id_val += p_tok.content;
+			}
+			
+			getToken();
+			
+			//Display result:
+			System.out.println("VALUE  :    " + id_val);
+			
+			if(params != null)
+				System.out.println("PARAMS :    " + params);
+			
+			System.out.println("\n");
 
-			}  else 
-				
-			//Check if it is a text content (MYTEXTMESSAGE)
-			if(found_nostep(VmgTokenType.STRING)) {
-				String id_val  = p_tok.content;
-				
-				//Check if we have content (could have case with IDENTIFIER:\r)
-				
-				while(!found(VmgTokenType.LINEFEED)) { //Retrieve data until cariage return
-					getToken();
-					id_val += p_tok.content;
-				}
-				
-				System.out.println("TEXTMSG" + ":=" + id_val);
-			}
-			
-			else {
-				System.out.println("ERROR parsing identifier"); //TODO: handle correctly error
-			}
-			
-			//Do some stuff
 			return;
 		}
 	}
 	
+	private ParamType process_params(String param_string) {
+		ParamType param = new ParamType();
+		
+		//Split string into params (separated by ; scolon)
+		String[] params = param_string.split(";");
+		
+		for (String string : params) {			
+			switch(string) { //TODO: make this proper.
+				case "ENCODING=QUOTED-PRINTABLE":
+					param.quoted_printable = true;
+					break;
+					
+				case "CHARSET=UTF-8" :
+					param.charset_utf8 = true;
+					break;
+					
+				case "CHARSET=ISO-8859-1" :
+					param.charset_iso8859_1 = true;
+					break;
+					
+				default :
+					System.out.println("UNKNOWN PARAMETER");
+			}
+		}
+		
+		return param;
+	}
+	
 	public void parse() {
-		
-		//Get all token and store them
-		
-		//Apply rules:
-		//first_pass();
-		
-		getToken();
 		
 		//Do rules
 		while(!found(VmgTokenType.EOF))

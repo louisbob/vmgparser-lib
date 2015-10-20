@@ -30,8 +30,16 @@ public class VmgLexer {
 		
 		/* CARRIAGE RETURN */
 		else if (vchar.isCarriageReturn()) {
-			token.type = VmgTokenType.LINEFEED;
+			//Check if CRLF
 			getChar();
+
+			if(vchar.isLineFeed()) {
+				token.type = VmgTokenType.CRLF;
+				getChar();
+			} else {
+				token.type = VmgTokenType.CARRIAGE;
+			}
+			
 			return token;
 		}
 		
