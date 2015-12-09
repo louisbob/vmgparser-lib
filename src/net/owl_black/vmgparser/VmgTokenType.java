@@ -9,17 +9,17 @@ public class VmgTokenType {
 	static VmgTokenType CARRIAGE 	= new VmgTokenType("Carriage", 		"\\r"); //0x0d
 	static VmgTokenType LINEFEED 	= new VmgTokenType("LineFeed", 		"\\n"); //0x0a
 	static VmgTokenType CRLF		= new VmgTokenType("CRLF", 			"\\r\\n");
-	static VmgTokenType SPACE	 	= new VmgTokenType("Space", 		" ");
-	static VmgTokenType EOF 		= new VmgTokenType("Eof", 			"Eof");
+	static VmgTokenType SPACE	 	= new VmgTokenType("Space", 		"[Space]");
+	static VmgTokenType EOF 		= new VmgTokenType("Eof", 			"[Eof]");
 	
 	//Parser extra tokens
-	static VmgTokenType SYM_SCOLON 	= new VmgTokenType("Symbol", 		null);
-	static VmgTokenType SYM_COLON 	= new VmgTokenType("Symbol", 		null);
-	static VmgTokenType SYM_EQUAL 	= new VmgTokenType("Symbol", 		null);
+	static VmgTokenType SYM_SCOLON 	= new VmgTokenType("Symbol", 		"\";\"");
+	static VmgTokenType SYM_COLON 	= new VmgTokenType("Symbol", 		"\":\"");
+	static VmgTokenType SYM_EQUAL 	= new VmgTokenType("Symbol", 		"\"=\"");
 	
 	static VmgTokenType ID_BEGIN 		= new VmgTokenType("Identifier*", 	"{");
 	static VmgTokenType ID_END 			= new VmgTokenType("Identifier*", 	"}");
-	static VmgTokenType ID_VERSION 		= new VmgTokenType("Identifier*", 	null); //The star mean 'identified indentifier'
+	static VmgTokenType ID_VERSION 		= new VmgTokenType("Identifier*", 	"VMSG Version"); //The star mean 'identified indentifier'
 	
 	/*
 	static VmgTokenType ID_NOKIA_DATE 	= new VmgTokenType("Identifier*", 	null);

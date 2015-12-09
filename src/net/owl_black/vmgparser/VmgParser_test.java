@@ -25,11 +25,11 @@ public class VmgParser_test {
 			return Arrays.asList(new Object[][] {
 		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8},
 		         {"D:\\louisbob\\programming\\Resources\\VMG files\\chinese_filename.vmg", VmgScanner.UTF16_LITTLE_ENDIAN},
-		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\Cal TW\\博涵 _2010-11-08(2).vmg", VmgScanner.UTF16_LITTLE_ENDIAN},
+		         {"D:\\louisbob\\programming\\Resources\\VMG files\\Cal TW\\博涵 _2010-11-08(2).vmg", VmgScanner.UTF16_LITTLE_ENDIAN},
 		         {"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento.vmg", VmgScanner.UTF8},
-		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\918985992080_Good _008.vmg", VmgScanner.UTF8},
-		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\1105151213_+2280136788.vmg", VmgScanner.UTF8}
-		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\aabid\\20130403153459_+919870046620.vmg", VmgScanner.UTF8}
+		         {"D:\\louisbob\\programming\\Resources\\VMG files\\918985992080_Good _008.vmg", VmgScanner.UTF8},
+		         {"D:\\louisbob\\programming\\Resources\\VMG files\\1105151213_+2280136788.vmg", VmgScanner.UTF8},
+		         {"D:\\louisbob\\programming\\Resources\\VMG files\\aabid\\20130403153459_+919870046620.vmg", VmgScanner.UTF8}
 		         
 		      });
 		}
