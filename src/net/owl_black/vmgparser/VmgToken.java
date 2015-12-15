@@ -16,6 +16,10 @@ public class VmgToken {
 		this._colidx 	= startChar.getCol();
 	}
 	
+	public int getLineNb() {
+		return _lineidx;
+	}
+	
 	@Override
 	public String toString() {
 		//If the displayable name is null, that means there is no specific way to display the token content

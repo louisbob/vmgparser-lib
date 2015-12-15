@@ -17,8 +17,8 @@ public class VmgTokenType {
 	static VmgTokenType SYM_COLON 	= new VmgTokenType("Symbol", 		"\":\"");
 	static VmgTokenType SYM_EQUAL 	= new VmgTokenType("Symbol", 		"\"=\"");
 	
-	static VmgTokenType ID_BEGIN 		= new VmgTokenType("Identifier*", 	"{");
-	static VmgTokenType ID_END 			= new VmgTokenType("Identifier*", 	"}");
+	static VmgTokenType ID_BEGIN 		= new VmgTokenType("Identifier*", 	"BEGIN");
+	static VmgTokenType ID_END 			= new VmgTokenType("Identifier*", 	"END");
 	static VmgTokenType ID_VERSION 		= new VmgTokenType("Identifier*", 	"VMSG Version"); //The star mean 'identified indentifier'
 	
 	/*

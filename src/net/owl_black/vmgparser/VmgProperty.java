@@ -2,7 +2,7 @@ package net.owl_black.vmgparser;
 
 import java.util.ArrayList;
 
-public class VmgProperty {
+public class VmgProperty implements IVisitable {
 	
 	ParamType 	params;
 	String		name;
@@ -11,6 +11,11 @@ public class VmgProperty {
 	public VmgProperty(String name) {
 		this.name = name;
 		this.value = "";
+	}
+	
+	@Override
+	public void accept(IVisitor visitor) {
+		visitor.visit(this);
 	}
 	
 	@Override

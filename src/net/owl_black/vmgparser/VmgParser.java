@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ezvcard.Ezvcard;
@@ -21,7 +22,6 @@ public class VmgParser {
 	VmgToken 		p_tok; //previous token
 	Stack<String> 	env_stack; //Stack for storing environnement.
 	Stack<String>	opt_stack; //Stack for storing options
-	String 			vcard_txt;
 	VCard			vcard;
 	
 	private static Logger log = Logger.getLogger(VmgParser.class.getName());
@@ -35,8 +35,11 @@ public class VmgParser {
 	public void expect(VmgTokenType toktype) {
 		if(found(toktype)) {
 			return;
-		} else
-			log.severe("I expected " + toktype._name + " but got " + c_tok.type._name );
+		} else {
+			log.severe("Line: " +c_tok.getLineNb() +  " - I expected " + toktype._name + " but got " + c_tok.type._name );
+			System.err.flush(); //TODO: fix that shit
+		}
+			
 	}
 	
 	public boolean found(VmgTokenType toktype) {
@@ -54,6 +57,23 @@ public class VmgParser {
 		return false;
 	}
 	
+	public void vmg_linefeed() {
+		
+		boolean already_warn = false;
+		
+		if(!found(VmgTokenType.CRLF))
+			expect(VmgTokenType.LINEFEED);
+		
+		while(found(VmgTokenType.LINEFEED) || found(VmgTokenType.CRLF)) {
+			if(!already_warn) {
+				log.warning("Line: " + p_tok.getLineNb() +" - Extra linefeed detected. This VMG does not respect the RFC norm!");
+				already_warn = true;
+			}
+		}
+		
+		
+	}
+	
 	public VmgToken vmg_begin() {
 		
 		VmgToken retTok;
@@ -69,14 +89,29 @@ public class VmgParser {
 		retTok = p_tok;
 
 		//TODO: handle errors
-		if(!found(VmgTokenType.CRLF))
-			expect(VmgTokenType.LINEFEED);
-		
-		//Some VMGs are not well formated. (tento test)
-		found(VmgTokenType.LINEFEED);
+		vmg_linefeed();
 		
 		return retTok;
+	}
+	
+	public VmgToken vmg_end() {
 		
+		VmgToken retTok;
+		
+		if(!found(VmgTokenType.ID_END)) 
+			return null;
+		
+		//We found the "BEGIN" keyword, start to process the beacon.
+		expect(VmgTokenType.SYM_COLON);
+		expect(VmgTokenType.IDENTIFIER);
+		
+		//Store the token that we will return
+		retTok = p_tok;
+
+		//TODO: handle errors
+		vmg_linefeed();
+		
+		return retTok;
 	}
 	
 	public VmgProperty vmg_property() {
@@ -139,26 +174,26 @@ public class VmgParser {
 	
 	public VCard vmg_vcard() {
 		
+		VmgToken tok;
+		String vcard_txt;
+		
 		//TODO: add check for the number of originator.
 		//Get the entire vcard:
 		vcard_txt = "BEGIN:VCARD\n";
 		
-		while(!found(VmgTokenType.ID_END)) {
+		while(!found_nostep(VmgTokenType.ID_END)) {
 			vcard_txt += c_tok.content;
 			getToken();
 		}
 		
-		expect(VmgTokenType.SYM_COLON);
-		expect(VmgTokenType.IDENTIFIER);
+		if( (tok = vmg_end()) == null) {
+			log.severe("End of the vcard is mis-formated.");
+			//TODO: stop algorithm.
+		}
 		
-		if(!p_tok.content.equals("VCARD")) {
+		if(!tok.content.equals("VCARD")) {
 			log.severe(" Vcard is not closed properly ("+ p_tok.content +")");
-		}
-		
-		if(!found(VmgTokenType.CRLF)) {
-			expect(VmgTokenType.LINEFEED);
-		}
-			
+		}	
 		
 		//Parse vcard:
 		vcard_txt += "END:VCARD";
@@ -174,48 +209,63 @@ public class VmgParser {
 		 * }
 		 * "END:VENV"<CRLF> */
 		
-		VCard vC;
 		VmgEnvelope vE = new VmgEnvelope();
-		VmgBody 	vB;
 		VmgToken 	tok;
+		List<VCard>	vOriginator = null;
 		
-		//Check the next environnement:
-		tok = vmg_begin();
 		
-		if (tok.content.equals("VCARD")) { //[<vmessage-recipient>]*
-			while(true) {
-
-				vC = vmg_vcard();
-				
-				if(vC != null) {
-					System.out.println("[VCard]");
-					for (Telephone phone : vC.getTelephoneNumbers()) {
-						System.out.println(phone.getText());
-					}
-					System.out.println("end [VCard]");
-				}
-				
-				if(found(VmgTokenType.LINEFEED))
-					System.out.println("Lineffed detected after the vcard. This VMG does not respect the RFC norm!");
-				
-				tok = vmg_begin();
-				if(!tok.content.equals("VCARD")) {
-					if(tok.content.equals("VENV"))
-						vmg_envelope();
-					break;
-				}
-					
+		while(true) {
+			//Check the next environment:
+			if( (tok = vmg_begin()) == null) {
+				log.severe("Bad VMG formatting: I expected \"BEGIN\"");
+				return null;
 			}
-		}  
+			
+			if (!tok.content.equals("VCARD")) 
+				break;
+			
+			//[<vmessage-recipient>]*
+			VCard vC = vmg_vcard();
+			
+			if(vC != null) {
+				
+				if(vOriginator == null) {
+					vOriginator = new ArrayList<VCard>();
+				}
+				
+				vOriginator.add(vC);
+				
+			} else {
+				log.severe("EzVcard library wasn't able to parse correctly the vcard.");
+				return null;
+			}
+			
+			//TODO: handle correctly linefeed
+			if(found(VmgTokenType.LINEFEED))
+				System.out.println("Linefeed detected after the vcard. This VMG does not respect the RFC norm!");
+		}
 		
-		if (tok.content.equals("VBODY")) { // <vmessage-content>
+		//Fullfill the vEnv with the new list of originator.
+		vE.setvOriginator(vOriginator);
+		
+		//<vmessage-envelope>*
+		if(tok.content.equals("VENV")) {
+			vmg_envelope(); //recursively enter into the venveloppe.
+		}
+		else if (tok.content.equals("VBODY")) { // <vmessage-content>
 			//Handle vbody
-			vB = vmg_body();
+			VmgBody vB = vmg_body();
 			
 			if(vB != null) {
-				System.out.println("[VBody]");
-				//TODO: verbose
+				vE.setvBody(vB);
+//				System.out.println("[VBody]");
+//				System.out.print(vB.toString());
+//				System.out.println("end [VBody]");
 			}
+		}
+		else {
+			//error
+			log.severe("TO HANDLE");
 		}
 		
 		return vE;
@@ -225,23 +275,47 @@ public class VmgParser {
 	
 	public VmgBody vmg_body() {
 		
-		VmgProperty vP;
-		while( (vP = vmg_property()) != null) {
-			System.out.println(vP.toString());
+		String bodyContent = "";
+		VmgToken tok;
+		
+		while(!found_nostep(VmgTokenType.ID_END)) {
+			bodyContent += c_tok.content;
+			getToken();
+			//TODO: handle correctly the \n that can occurs at the end of the string.
+			//MUST be handled in the extended version of the VmgBody
 		}
 		
-		//Get the entire vcard:
-		return null;
+		if( (tok = vmg_end()) == null) {
+			log.severe("End of the vbody is mis-formated.");
+			return null;
+			//TODO: stop algorithm.
+		}
+		
+		if(!tok.content.equals("VBODY")) {
+			log.severe(" Vbody is not closed properly ("+ p_tok.content +")");
+			return null;
+		}
+		
+		//Create a new vbody object
+		return new VmgBody(bodyContent);
 	}
 	
 	
 	
-	public void vmg_object() {
+	public VmgObj vmg_object() {
 		
-		VmgProperty vP;
-		VCard 		vC;
-		VmgEnvelope vE;
-		VmgToken 	tok;
+		VmgObj				vmg;
+		VmgProperty 		vP;
+		List<VmgProperty> 	vObjPro = null;
+		VCard 				vC;
+		List<VCard>			vObjVcards = null;
+		VmgEnvelope 		vE;
+		VmgToken 			tok;
+		
+		//Instantiate a new VmgObject:
+		vmg = new VmgObj();
+		
+		
 		/*
 		 * <vmessage-object> ::= {
 		 * 	"BEGIN:VMSG" <CRLF>
@@ -252,8 +326,10 @@ public class VmgParser {
 		 * }
 		 */
 		
-		// "BEGIN:VMSG"
+		//Read the first token:
+		getToken();
 		
+		// "BEGIN:VMSG" : check the version of the vMessage 
 		if( (tok = vmg_begin()) == null) {
 			//TODO: handle error
 			System.out.println("Error!");
@@ -264,230 +340,91 @@ public class VmgParser {
 			System.out.println("Error!");
 		}
 		
-		//VERSION:1.1
+		//Check that we have the correct version of VMG, that is VERSION:1.1
 		expect(VmgTokenType.ID_VERSION);
 		expect(VmgTokenType.SYM_COLON);
 		expect(VmgTokenType.NUMBER);
 		if(!p_tok.content.equals("1.1")) {
-			log.severe(" VMG version is invalid.");
-			return;
+			log.severe(" VMG version is invalid. Only version 1.1 is supported.");
+			return null;
 		}
 		
-		if(!found(VmgTokenType.CRLF))
-			expect(VmgTokenType.LINEFEED);
+		//The version is fine, let's instantiate the first property.
+		vP = new VmgProperty("VERSION");
+		vP.value = "1.1";
+		vObjPro = vmg.getvProp();
+		vObjPro.add(vP);
 		
-		System.out.println("[VMSG]");
+		//Prevent bad linefeed formatting.
+		vmg_linefeed();
+		
+		//If the VMSG respect the vCard syntax starting from version 4.0, \r\n is replaced
+		//by a single \n
+		log.fine("[VMSG]");
 		
 		// <vmessage-property>*
+		//Get the list of properties in order to modify it. There is at least one property: the version.
+		
 		while( (vP = vmg_property()) != null) {
-			System.out.println(vP.toString());
+			vObjPro.add(vP);
+			//System.out.println(vP.toString());
 		}
+		
+		//Fullfill the VMG with the new list of originator. TODO: is it useful?
+		vmg.setvProp(vObjPro);
+		
 		
 		// [<vmessage-originator>]* (make it optional because of brackets. [])
 		while(true) {
-			tok = vmg_begin();
+			if( (tok = vmg_begin()) == null) {
+				log.severe("Bad VMG formatting: I expected \"BEGIN\"");
+				return null;
+			}
 			if(!tok.content.equals("VCARD"))
 				break;
 			
 			vC = vmg_vcard();
 			
 			if(vC != null) {
-				System.out.println("[VCard]");
-				for (Telephone phone : vC.getTelephoneNumbers()) {
-					System.out.println(phone.getText());
+				//We have successfully retrieved a vCard. If it's the first vcard we encounter, initialize it.
+				if(vObjVcards == null) {
+					vObjVcards = new ArrayList<VCard>();
 				}
-				System.out.println("end [VCard]");
+				
+				vObjVcards.add(vC);
+				
+				//System.out.println("[VCard]");
+				//for (Telephone phone : vC.getTelephoneNumbers()) {
+				//	System.out.println(phone.getText());
+				//}
+				//System.out.println("end [VCard]");
+			} else {
+				log.severe("EzVcard library wasn't able to parse correctly the vcard.");
+				return null;
 			}
 			
-			while(found(VmgTokenType.LINEFEED) || found(VmgTokenType.CRLF))
-				System.out.println("Lineffed detected after the vcard. This VMG does not respect the RFC norm!");
-			
+			if(found(VmgTokenType.LINEFEED))
+				System.out.println("Linefeed detected after the vcard. This VMG does not respect the RFC norm!");
 		}
 		
-		if(!tok.content.equals("VENV")) {
-			//TODO: handle error
-			System.out.println("error");
-		}
+		//Fullfill the VMG with the new list of originator.
+		vmg.setvOriginator(vObjVcards);
 		
+
 		//<vmessage-envelope>
-		vE = vmg_envelope();
-		
-		return;
-		
-		/*
-		if(found(VmgTokenType.ID_BEGIN)) {
-			expect(VmgTokenType.SYM_COLON);
-			
-			//Next token will be the environnement name (ex : VMSG, VCARD, VENV, etc...). Store the name into the stack.
-			expect(VmgTokenType.IDENTIFIER);
-			
-			env_stack.push(p_tok.content);
-			
-			//check if vmsg
-			if (p_tok.content.equals("VMSG")) {
-				
-				if(!found(VmgTokenType.CRLF))
-					expect(VmgTokenType.LINEFEED);
-				
-				expect(VmgTokenType.ID_VERSION);
-				expect(VmgTokenType.SYM_COLON);
-				expect(VmgTokenType.NUMBER);
-				
-				//Check version number
-				
-				if(p_tok.content.equals("1.1"))
-					
-						
-				
-				if(!found(VmgTokenType.CRLF))
-					expect(VmgTokenType.LINEFEED);
-				//STORE VERSION NUMBER HERE.
-				
-				System.out.println("_VMSG_");
-			} else 
-				
-			if (p_tok.content.equals("VCARD")) {
-				
-				//Get the entire vcard:
-				vcard_txt = "BEGIN:VCARD";
-				
-				while(!found(VmgTokenType.ID_END)) {
-					vcard_txt += c_tok.content;
-					getToken();
-				}
-				
-				expect(VmgTokenType.SYM_COLON);
-				
-				//Check that we are closing the correct environnement (tracing is done using a stack)
-				expect(VmgTokenType.IDENTIFIER);
-				if(!p_tok.content.equals("VCARD")) {
-					System.out.println("ERROR while VCARdin' ");
-				}
-				
-				System.out.println("_VCARD_");
-				
-				vcard_txt += "END:VCARD";
-				
-				//Parse vcard:
-				vcard = Ezvcard.parse(vcard_txt).first();
-				
-				for (Telephone phone : vcard.getTelephoneNumbers()) {
-					System.out.println(phone.getText());
-				}
-				
-				//We close the environnement so we must pop the vcard attribute:
-				env_stack.pop();
-				
-				
-//				expect(VmgTokenType.CRLF);
-//				expect(VmgTokenType.ID_VERSION);
-//				expect(VmgTokenType.SYM_COLON);
-//				expect(VmgTokenType.NUMBER);
-//				//STORE VERSION NUMBER HERE.
-//				
-//				//Todo: regarding version of vcard, differences...
-//				expect(VmgTokenType.CRLF);
-				
-				
-				
-			} else {
-				if(!found(VmgTokenType.CRLF))
-					expect(VmgTokenType.LINEFEED);
-			}
-			
-
-			return;
-			
-		} else 
-		
-		if(found(VmgTokenType.ID_END)) {
-			expect(VmgTokenType.SYM_COLON);
-			
-			//Check that we are closing the correct environnement (tracing is done using a stack)
-			expect(VmgTokenType.IDENTIFIER);
-			String s = env_stack.pop();
-			if(!s.equals(p_tok.content)) {
-				System.out.println("FATAL ERROR: not closing the right environnement. (" 
-					+ s 
-					+ " instead of " 
-					+ p_tok.content 
-					+ ")" );
-			}
-			
-			if(s.equals("VCARD")) 
-				expect(VmgTokenType.CRLF);
-			else
-				if(!found(VmgTokenType.CRLF))
-					expect(VmgTokenType.LINEFEED);
-			return;
-			
-		} else 
-			
-		if(found(VmgTokenType.LINEFEED) || found(VmgTokenType.CRLF)) {
-			//Simply pass the character : nothing interesting to process here.
-			return;
-		} else 
-			
-		if(found(VmgTokenType.IDENTIFIER)) {
-			String params = null;
-			String id_name;
-			ParamType param = null;
-			
-			//contentline = [group "."] name *(";" param) ":" value CRLF
-			id_name = p_tok.content;
-			System.out.println("IDENT  :    " + id_name);
-			
-			//Check for parameters
-			if(found(VmgTokenType.SYM_SCOLON)) {
-				params = c_tok.content;
-				getToken();
-				
-				//Get the param list
-				while(!found(VmgTokenType.SYM_COLON)) { //Retrieve data until cariage return
-					params += c_tok.content;
-					getToken();
-				}
-				
-				//Process params:
-				param = process_params(params);
-				
-			} else {
-				expect(VmgTokenType.SYM_COLON);
-			}
-				
-			
-			//READ value
-			String id_val  = "";
-			
-			while(true) {
-				//Check previous caracter
-				if(found_nostep(VmgTokenType.CRLF)) { //Retrieve data until cariage return
-					if(p_tok.type != VmgTokenType.SYM_EQUAL)
-						break;
-					else if (!param.quoted_printable)
-						break;
-				}
-				
-				if(found_nostep(VmgTokenType.LINEFEED))
-					break;
-				
-				getToken();
-				id_val += p_tok.content;
-			}
-			
-			getToken();
-			
-			//Display result:
-			System.out.println("VALUE  :    " + id_val);
-			
-			if(params != null)
-				System.out.println("PARAMS :    " + params);
-			
-			System.out.println("\n");
-
-			return;
+		if(!tok.content.equals("VENV")) {
+			log.severe("Bad VMG formatting: I expected an enveloppe, and got \"" + tok.content + "\" instead.");
+			return null;
 		}
-		*/
+		
+		if( (vE = vmg_envelope()) == null) {
+			log.severe("Bad VMG formatting: the returned enveloppe is not valid.");
+			return null;
+		}
+		
+		vmg.setvEnv(vE);
+		
+		return vmg;
 	}
 	
 	private ParamType process_params(String param_string) {
@@ -516,18 +453,6 @@ public class VmgParser {
 		}
 		
 		return param;
-	}
-	
-	public void parse() {
-		
-		getToken();
-		
-		//Do rules
-		//while(!found(VmgTokenType.EOF))
-		
-		vmg_object();
-		
-		System.out.println("Parsing finished.");
 	}
 	
 	public void getToken() {
