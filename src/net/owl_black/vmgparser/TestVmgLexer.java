@@ -20,7 +20,7 @@ public class TestVmgLexer {
 	
 	//Input VMG files for recursive test on files TODO: merge files among different test
 	@Parameterized.Parameters
-	public static Collection inputVMGs() {
+	public static Collection<Object[]> inputVMGs() {
 		return Arrays.asList(new Object[][] {
 	         //{"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8},
 	         //{"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento.vmg", VmgScanner.UTF8},

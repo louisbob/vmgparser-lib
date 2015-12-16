@@ -3,17 +3,12 @@ package net.owl_black.vmgparser;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
-import ezvcard.VCardVersion;
-import ezvcard.property.Key;
-import ezvcard.property.Telephone;
 
 public class VmgParser {
 
@@ -120,10 +115,7 @@ public class VmgParser {
 			return null;
 		
 		VmgProperty vProp;
-		
 		String 		params = null;
-		String 		id_name;
-		ParamType 	param_t = null;
 		
 		//contentline = [group "."] name *(";" param) ":" value CRLF
 		vProp = new VmgProperty(p_tok.content);

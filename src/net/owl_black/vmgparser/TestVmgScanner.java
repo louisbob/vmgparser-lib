@@ -1,16 +1,11 @@
 package net.owl_black.vmgparser;
 
-import static org.junit.Assert.*;
-
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -24,7 +19,7 @@ public class TestVmgScanner {
 	
 	//Input VMG files for recursive test on files
 	@Parameterized.Parameters
-	public static Collection inputVMGs() {
+	public static Collection<Object[]> inputVMGs() {
 		return Arrays.asList(new Object[][] {
 	         {"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8},
 	         {"D:\\louisbob\\programming\\Resources\\VMG files\\chinese_filename.vmg", VmgScanner.UTF16_LITTLE_ENDIAN},

@@ -24,7 +24,7 @@ public class TestVmgParser {
 		
 		//Input VMG files for recursive test on files
 		@Parameterized.Parameters
-		public static Collection inputVMGs() {
+		public static Collection<Object[]> inputVMGs() {
 			return Arrays.asList(new Object[][] {
 				{"junit\\1_wrong_vmg_version.vmg", VmgScanner.UTF8, false},
 				{"junit\\2_bad_linefeed.vmg", VmgScanner.UTF8, false},
