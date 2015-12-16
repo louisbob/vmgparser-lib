@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class VmgScanner_test {
+public class TestVmgScanner {
 	
 	//Test resources
 	VmgScanner 	scanner;
@@ -33,7 +33,7 @@ public class VmgScanner_test {
 	}
 	
 	//Constructor
-	public VmgScanner_test(String file_path, String file_encoding) throws UnsupportedEncodingException {
+	public TestVmgScanner(String file_path, String file_encoding) throws UnsupportedEncodingException {
 		_inputFile = file_path;
 		File f = new File(file_path);
 		scanner = new VmgScanner(f, file_encoding);

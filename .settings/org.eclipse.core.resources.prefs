@@ -1,5 +1,5 @@
 eclipse.preferences.version=1
+encoding//src/net/owl_black/vmgparser/TestVmgLexer.java=UTF-8
+encoding//src/net/owl_black/vmgparser/TestVmgParser.java=UTF-8
+encoding//src/net/owl_black/vmgparser/TestVmgScanner.java=UTF-8
 encoding//src/net/owl_black/vmgparser/VmgCharacter.java=UTF-8
-encoding//src/net/owl_black/vmgparser/VmgLexer_test.java=UTF-8
-encoding//src/net/owl_black/vmgparser/VmgParser_test.java=UTF-8
-encoding//src/net/owl_black/vmgparser/VmgScanner_test.java=UTF-8

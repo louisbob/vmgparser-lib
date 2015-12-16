@@ -1,7 +1,5 @@
 package net.owl_black.vmgparser;
 
-import java.util.ArrayList;
-
 public class VmgProperty implements IVisitable {
 	
 	ParamType 	params;
