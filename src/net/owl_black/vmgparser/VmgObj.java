@@ -11,7 +11,9 @@ public class VmgObj implements IVisitable {
 	private VmgEnvelope			vEnv;
 	
 	public VmgObj() {
-		setvProp(new ArrayList<VmgProperty>()); //In a vmg file, there is at least one property : the version number
+		//In a vmg file, there is at least one property : the version number.
+		//It is why we instantiate this object.
+		setvProp(new ArrayList<VmgProperty>()); 
 	}
 	
 	@Override

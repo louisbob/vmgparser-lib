@@ -5,7 +5,7 @@ import java.util.List;
 import ezvcard.VCard;
 
 public class VmgEnvelope implements IVisitable {
-	VmgEnvelope 		vEnv;
+	private VmgEnvelope vEnv;
 	private VmgBody 	vBody;
 	private List<VCard>	vOriginator; //[Optionnal]
 	
@@ -34,5 +34,13 @@ public class VmgEnvelope implements IVisitable {
 
 	public void setvOriginator(List<VCard> vOriginator) {
 		this.vOriginator = vOriginator;
+	}
+
+	public VmgEnvelope getvEnv() {
+		return vEnv;
+	}
+
+	public void setvEnv(VmgEnvelope vEnv) {
+		this.vEnv = vEnv;
 	}
 }

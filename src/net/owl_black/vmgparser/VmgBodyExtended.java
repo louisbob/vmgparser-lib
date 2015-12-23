@@ -1,8 +1,12 @@
 package net.owl_black.vmgparser;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class VmgBodyExtended extends VmgBody {
+	
+	private List<VmgProperty> vProp;
 	
 	public enum XIrmcStatus {
 		UNREAD, READ
@@ -18,6 +22,7 @@ public class VmgBodyExtended extends VmgBody {
 	private String		content;
 	
 	public VmgBodyExtended() {
+		setvProp(new ArrayList<VmgProperty>());
 	}
 
 	@Override
@@ -67,5 +72,13 @@ public class VmgBodyExtended extends VmgBody {
 
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public List<VmgProperty> getvProp() {
+		return vProp;
+	}
+
+	public void setvProp(List<VmgProperty> vProp) {
+		this.vProp = vProp;
 	}
 }

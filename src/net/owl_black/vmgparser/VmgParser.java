@@ -1,14 +1,27 @@
 package net.owl_black.vmgparser;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.Console;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.Charsets;
+
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
+import ezvcard.util.org.apache.commons.codec.DecoderException;
+import ezvcard.util.org.apache.commons.codec.net.QuotedPrintableCodec;
+import net.owl_black.vmgparser.VmgBodyExtended.XIrmcBox;
 
 public class VmgParser {
 
@@ -18,6 +31,7 @@ public class VmgParser {
 	Stack<String> 	env_stack; //Stack for storing environnement.
 	Stack<String>	opt_stack; //Stack for storing options
 	VCard			vcard;
+	boolean			parseVBody;
 	
 	private static Logger log = Logger.getLogger(VmgParser.class.getName());
 	
@@ -27,7 +41,7 @@ public class VmgParser {
 		opt_stack = new Stack<String>();
 	}
 	
-	public void expect(VmgTokenType toktype) {
+	private void expect(VmgTokenType toktype) {
 		if(found(toktype)) {
 			return;
 		} else {
@@ -37,7 +51,7 @@ public class VmgParser {
 			
 	}
 	
-	public boolean found(VmgTokenType toktype) {
+	private boolean found(VmgTokenType toktype) {
 		if(c_tok.type == toktype) {
 			getToken();
 			return true;
@@ -45,14 +59,14 @@ public class VmgParser {
 		return false;
 	}
 	
-	public boolean found_nostep(VmgTokenType toktype) { //Same as found, but without any token step.
+	private boolean found_nostep(VmgTokenType toktype) { //Same as found, but without any token step.
 		if(c_tok.type == toktype) {
 			return true;
 		}
 		return false;
 	}
 	
-	public void vmg_linefeed() {
+	private void vmg_linefeed() {
 		
 		boolean already_warn = false;
 		
@@ -69,7 +83,7 @@ public class VmgParser {
 		
 	}
 	
-	public VmgToken vmg_begin() {
+	private VmgToken vmg_begin() {
 		
 		VmgToken retTok;
 		
@@ -89,7 +103,7 @@ public class VmgParser {
 		return retTok;
 	}
 	
-	public VmgToken vmg_end() {
+	private VmgToken vmg_end() {
 		
 		VmgToken retTok;
 		
@@ -109,7 +123,7 @@ public class VmgParser {
 		return retTok;
 	}
 	
-	public VmgProperty vmg_property() {
+	private VmgProperty vmg_property(boolean isInVbody) {
 		
 		if (!found(VmgTokenType.IDENTIFIER))
 			return null;
@@ -137,8 +151,16 @@ public class VmgParser {
 		} else if (found(VmgTokenType.SYM_COLON)) {
 			//DO nothing
 		} else {
-			//We have text:
-			System.out.println("Non standard Vbody TEXT");
+			//We have full text. This can happen only when we are inside the vbody beacon.
+			//If it is not the case, simply return an error.
+			if(isInVbody) {
+				vProp.value = vProp.name + vProp.value; 
+				
+				//Change the property to text
+				vProp.name = "TEXT";
+				
+			} else //TODO: add line number in the backlog.
+				log.severe("Non standard property. VMG is not well formatted.");
 		}
 			
 		//READ value
@@ -164,7 +186,7 @@ public class VmgParser {
 		
 	}
 	
-	public VCard vmg_vcard() {
+	private VCard vmg_vcard() {
 		
 		VmgToken tok;
 		String vcard_txt;
@@ -192,7 +214,7 @@ public class VmgParser {
 		return Ezvcard.parse(vcard_txt).first();
 	}
 	
-	public VmgEnvelope vmg_envelope() {
+	private VmgEnvelope vmg_envelope() {
 		
 		/*"BEGIN:VENV"<CRLF>
 		 * {
@@ -242,11 +264,16 @@ public class VmgParser {
 		
 		//<vmessage-envelope>*
 		if(tok.content.equals("VENV")) {
-			vmg_envelope(); //recursively enter into the venveloppe.
+			vE.setvEnv(vmg_envelope()); //recursively enter into the venveloppe.
 		}
 		else if (tok.content.equals("VBODY")) { // <vmessage-content>
 			//Handle vbody
-			VmgBody vB = vmg_body();
+			VmgBody vB;
+			
+			if(parseVBody) 
+				vB = vmg_body_extended();
+			else
+				vB = vmg_body();
 			
 			if(vB != null) {
 				vE.setvBody(vB);
@@ -265,7 +292,7 @@ public class VmgParser {
 	
 	
 	
-	public VmgBody vmg_body() {
+	private VmgBody vmg_body() {
 		
 		String bodyContent = "";
 		VmgToken tok;
@@ -292,9 +319,47 @@ public class VmgParser {
 		return new VmgBody(bodyContent);
 	}
 	
+	private String streamToString(InputStream in) throws IOException {
+		StringBuilder out = new StringBuilder();
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		for(String line = br.readLine(); line != null; line = br.readLine())
+			out.append(line);
+		br.close();
+		return out.toString();
+	}
+	
+	private VmgBodyExtended vmg_body_extended() {
+		VmgProperty vP = null;
+		
+		VmgBodyExtended vBe = new VmgBodyExtended();
+		List<VmgProperty> properties = vBe.getvProp();
+		QuotedPrintableCodec decoder = new QuotedPrintableCodec();
+		
+		while( (vP = vmg_property(true)) != null) {
+			
+			if((vP.params != null) && (vP.params.quoted_printable)) {
+				//Process quoted printable:
+				try {
+					vP.value = decoder.decode(vP.value);
+				} catch (DecoderException e) {
+					// TODO Auto-generated catch block
+					log.warning("Impossible to decode the property containing quoted printable text.");
+				}
+			}
+			
+			if(vP.name.equals("TEXT"))
+				vBe.setContent(vP.value);
+			
+			properties.add(vP);
+			System.out.println(vP.toString());
+		}
+		
+		return vBe;
+	}
 	
 	
-	public VmgObj vmg_object() {
+	
+	public VmgObj vmg_object(boolean parseBody) {
 		
 		VmgObj				vmg;
 		VmgProperty 		vP;
@@ -304,9 +369,10 @@ public class VmgParser {
 		VmgEnvelope 		vE;
 		VmgToken 			tok;
 		
+		this.parseVBody = parseBody;
+		
 		//Instantiate a new VmgObject:
 		vmg = new VmgObj();
-		
 		
 		/*
 		 * <vmessage-object> ::= {
@@ -357,7 +423,7 @@ public class VmgParser {
 		// <vmessage-property>*
 		//Get the list of properties in order to modify it. There is at least one property: the version.
 		
-		while( (vP = vmg_property()) != null) {
+		while( (vP = vmg_property(false)) != null) {
 			vObjPro.add(vP);
 			//System.out.println(vP.toString());
 		}
@@ -402,7 +468,6 @@ public class VmgParser {
 		//Fullfill the VMG with the new list of originator.
 		vmg.setvOriginator(vObjVcards);
 		
-
 		//<vmessage-envelope>
 		if(!tok.content.equals("VENV")) {
 			log.severe("Bad VMG formatting: I expected an enveloppe, and got \"" + tok.content + "\" instead.");
@@ -447,7 +512,7 @@ public class VmgParser {
 		return param;
 	}
 	
-	public void getToken() {
+	private void getToken() {
 		p_tok = c_tok;
 		c_tok = lexer.get();
 	}

@@ -81,13 +81,21 @@ public class Visitor_DisplayConsole implements IVisitor{
 		
 		Collection<VCard> vcardList = e.getvOriginator();
 		if(vcardList != null) {
+			//tab_number++;
+			println("[VCARD]");
 			String test = Ezvcard.write(vcardList).version(this.vcard_version).go();
-			println(test);
+			print(test);
+			println("[\\VCARD]");
+			//tab_number--;
 		}
 		
 		VmgBody vB = e.getvBody();
 		if(vB != null)
 			vB.accept(this);
+		
+		VmgEnvelope vE = e.getvEnv();
+		if(vE != null)
+			vE.accept(this);
 			
 		tab_number--;
 		println("[\\VENV]");
@@ -100,15 +108,22 @@ public class Visitor_DisplayConsole implements IVisitor{
 		
 		String text = e.getContent();
 		if(text != null)
-			print(text);
+			println(text);
 		
 		tab_number--;
 		println("[\\VBODY]");
 	}
 	@Override
 	public void visit(VmgBodyExtended e) {
-		// TODO Auto-generated method stub
+		println("[VBODY]");
+		tab_number++;
 		
+		for (VmgProperty vP : e.getvProp()) {
+			vP.accept(this);
+		}
+		
+		tab_number--;
+		println("[\\VBODY]");
 	}
 
 }

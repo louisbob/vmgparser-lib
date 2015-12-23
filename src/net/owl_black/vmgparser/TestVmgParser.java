@@ -25,12 +25,12 @@ public class TestVmgParser {
 		//Input VMG files for recursive test on files
 		@Parameterized.Parameters
 		public static Collection<Object[]> inputVMGs() {
-			return Arrays.asList(new Object[][] {
+			return Arrays.asList(new Object[][] {/*
 				{"junit\\1_wrong_vmg_version.vmg", VmgScanner.UTF8, false},
-				{"junit\\2_bad_linefeed.vmg", VmgScanner.UTF8, false},
-				{"junit\\2_bad_linefeed2_+351253471692_Tento.vmg", VmgScanner.UTF8, false},
-				{"D:\\louisbob\\programming\\Resources\\smspapa\\+33608898623_Bonjo_001.vmg", VmgScanner.UTF8, true},
-				
+				{"junit\\2_bad_linefeed.vmg", VmgScanner.UTF8, true},
+				{"junit\\2_bad_linefeed2_+351253471692_Tento.vmg", VmgScanner.UTF8, true},
+				{"D:\\louisbob\\programming\\Resources\\smspapa\\+33608898623_Bonjo_001.vmg", VmgScanner.UTF8, true},*/
+				{"D:\\louisbob\\programming\\Resources\\VMG files\\chinese_filename.vmg", VmgScanner.UTF16_LITTLE_ENDIAN, true},
 				
 		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8},
 				/*
@@ -55,7 +55,7 @@ public class TestVmgParser {
 		public void testVmgParser() throws IOException {
 			
 			System.out.println("============= PARSING : " + _inputFile + "\n");
-			VmgObj myVmg = parser.vmg_object();
+			VmgObj myVmg = parser.vmg_object(true);
 			
 			//Flush the error logger buffer.
 			System.err.flush();
@@ -68,6 +68,9 @@ public class TestVmgParser {
 					fail(); 
 				}
 				else return;
+			} else {
+				if(!_test_must_success)
+					fail();
 			}
 			
 			//Dispay the content of the obtained vmg by using the visitor design pattern.

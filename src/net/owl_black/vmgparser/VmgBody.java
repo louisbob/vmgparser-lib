@@ -17,7 +17,10 @@ public class VmgBody implements IVisitable {
 	
 	@Override
 	public void accept(IVisitor visitor) {
-		visitor.visit(this);
+		if(this instanceof VmgBodyExtended)
+			visitor.visit((VmgBodyExtended) this);
+		else
+			visitor.visit(this);
 	}
 	
 	/*

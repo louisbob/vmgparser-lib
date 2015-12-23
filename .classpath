@@ -8,5 +8,10 @@
 			<attribute name="javadoc_location" value="jar:file:/D:/louisbob/programming/svn/ez-vcard/target/ez-vcard-0.9.8-SNAPSHOT-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/owlJavmg/lib/commons-codec-1.10-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
