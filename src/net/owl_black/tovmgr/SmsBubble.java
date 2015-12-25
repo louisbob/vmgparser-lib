@@ -14,28 +14,28 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 
 public class SmsBubble extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
+	static enum BubbleDirection {
+		BBL_RECEIVED__RIGHT,
+		BBL_SENT__LEFT
+	}
+	
 	/* Modifiable properties. */
 	private String messageText;
 	private String txtDate;
+	private BubbleDirection bblDirection;
 	
 	/* Theming. */
 	static Color clConversationBg 	= new Color(238, 238, 238); //Grey light
 	
-	static Color clSentBbl 			= new Color(255, 255, 255); //White
-	static Color clSentTxtBbl		= Color.WHITE;
-	
-	static Color clReceivedBbl 		= new Color(15, 157, 88);   //Green
-	static Color clReceivedTxtBbl	= Color.BLACK;
-	
-	static Color clTime				= new Color(132, 132, 132); //Other grey
-	
-	static int BBL_RECEIVED = 0;
-	static int BBL_SENT 	= 1;
+	static Color clTime;
+	static Color clBbl;
+	static Color clTxtBbl;
 	
 	/* Graphical resources. */
 	private JLabel lblDate;
@@ -50,7 +50,7 @@ public class SmsBubble extends JPanel {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setBackground(clConversationBg);
 		
-		SmsBubble bbl = new SmsBubble("<html>This is my text message. it is super cool to have this kind of super styled tuf"
+		SmsBubble bbl = new SmsBubble(BubbleDirection.BBL_RECEIVED__RIGHT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
 				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
 		
 		//FOR DEBUG
@@ -61,10 +61,28 @@ public class SmsBubble extends JPanel {
 		frame.setVisible(true);
 	}
 	
-	public SmsBubble() {
-		this.messageText = "";
+	public SmsBubble(BubbleDirection direction, String messageText, String dateText) {
+		//Default behavior
+		this.bblDirection 	= direction;
+		this.messageText 	= messageText;
+		this.txtDate 		= dateText;
+		
 	    this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	    this.setDoubleBuffered(true);
+	    
+	    //Set style:
+	    Border bordersPan;
+	    if(this.bblDirection == BubbleDirection.BBL_RECEIVED__RIGHT) {
+	    	clTime 		= new Color(132, 132, 132); //Grey
+	    	clBbl 		= new Color(255, 255, 255); //White
+		    clTxtBbl 	= Color.BLACK;
+		    bordersPan = BorderFactory.createEmptyBorder(1, 8, 10, 20); //top, left, bottom, right
+	    } else {
+	    	clTime 		= new Color(159, 216, 188);
+	    	clBbl 		= new Color(15, 157, 88);   //Green
+		    clTxtBbl 	= Color.WHITE;
+		    bordersPan  = BorderFactory.createEmptyBorder(1, 28, 10, 8);
+	    }
 	    
 	    //Layout that hold the text and the date.
   		panText = new JPanel(true); //Double buffered
@@ -74,22 +92,22 @@ public class SmsBubble extends JPanel {
   		panText.setBackground(new Color(0,0,0,0)); //Set maximum transparency
   		
   		//Create margin/padding around the text:
-  		panText.setBorder(BorderFactory.createEmptyBorder(1, 8, 10, 20)); //top, left, bottom, right
+  		panText.setBorder(bordersPan); 
   		
   		//Create the date
-  		lblDate = new JLabel("", SwingConstants.CENTER);
+  		lblDate = new JLabel(this.txtDate, SwingConstants.CENTER);
   	    lblDate.setFont(new Font("Calibri",1,10));
-		lblDate.setForeground(clTime);
+  	    lblDate.setForeground(clTime);
 		lblDate.setDoubleBuffered(true); //TODO: check performances
 		panText.add(lblDate);
   		
   		//Create the text label
-  	    lblMessage = new JLabel("", SwingConstants.LEFT);
+  	    lblMessage = new JLabel(this.messageText, SwingConstants.LEFT);
   	    lblMessage.setFont(new Font("Calibri",1,12));
-  	    lblMessage.setForeground(clReceivedTxtBbl);
+  	    lblMessage.setForeground(clTxtBbl);
   	    lblMessage.setDoubleBuffered(true);
   	    panText.add(lblMessage);
-  	    
+
   	    this.add(panText);
   	    
   	    //FOR DEBUG
@@ -97,20 +115,16 @@ public class SmsBubble extends JPanel {
   	    //lblMessage.setBorder(BorderFactory.createLineBorder(Color.black, 1));
 	}
 	
-	public SmsBubble(String messageText) {
-		this();
-		
-		//Update the text
-		this.messageText = messageText;
-		this.lblMessage.setText(this.messageText);
+	public SmsBubble() {
+		this(BubbleDirection.BBL_RECEIVED__RIGHT, "", "");
 	}
 	
-	public SmsBubble(String messageText, String dateText) {
-		this(messageText);
-		
-		//Update the date
-		this.setStrDate(dateText);
-		this.lblDate.setText(dateText);
+	public SmsBubble(BubbleDirection direction) {
+		this(direction, "", "");
+	}
+	
+	public SmsBubble(BubbleDirection direction, String messageText) {
+		this(direction, messageText, "");
 	}
 	
 	@Override
@@ -130,19 +144,35 @@ public class SmsBubble extends JPanel {
 		if(dimPanel.width > dimPanelMax.width)
 			dimPanel.width = dimPanelMax.width;
 		
+		RoundRectangle2D roundedRectangle;
+		
 		//Create the rectangle bubble
-	    RoundRectangle2D roundedRectangle = new RoundRectangle2D.Float(
-	    		0, 0, dimPanel.width-15, dimPanel.height, 8, 8); // x pos, y pos, rect width, rect height, corner round
+		if(this.bblDirection == BubbleDirection.BBL_RECEIVED__RIGHT) {
+			roundedRectangle = new RoundRectangle2D.Float(
+		    		1, 1, dimPanel.width-18, dimPanel.height, 8, 8); // x pos, y pos, rect width, rect height, corner round
+		} else {
+			roundedRectangle = new RoundRectangle2D.Float(
+		    		18, 1, dimPanel.width-19, dimPanel.height, 8, 8); // x pos, y pos, rect width, rect height, corner round
+		}
 	    
-	    graphBubble.setColor(clSentBbl);
+	    
+	    graphBubble.setColor(clBbl);
 	    graphBubble.draw(roundedRectangle);
 	    graphBubble.fill(roundedRectangle);
 	    
 	    //Create the triangle TODO: make it parameterizable
-	    int[] xPoints = {dimPanel.width-20, dimPanel.width, dimPanel.width-20};
-		int[] yPoints = {0, 0, 20};
-		
-	    Polygon triangle = new Polygon(xPoints, yPoints, xPoints.length);
+	    Polygon triangle;
+	    
+	    if(this.bblDirection == BubbleDirection.BBL_RECEIVED__RIGHT) {
+	    	int[] xPoints = {dimPanel.width-20, dimPanel.width, dimPanel.width-20};
+		    int[] yPoints = {1, 1, 21};
+		    triangle = new Polygon(xPoints, yPoints, xPoints.length);
+	    } else {
+	    	int[] xPoints = {1, 21, 21};
+		    int[] yPoints = {1, 1, 21};
+		    triangle = new Polygon(xPoints, yPoints, xPoints.length);
+	    }
+	    
 	    graphBubble.draw(triangle);
 	    graphBubble.fill(triangle);
 	    
@@ -159,8 +189,6 @@ public class SmsBubble extends JPanel {
 
 	public void setMessageText(String messageText) {
 		this.messageText = messageText;
-		
-		
 	}
 
 	public String getStrDate() {
