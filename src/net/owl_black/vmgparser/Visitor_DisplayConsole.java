@@ -113,6 +113,7 @@ public class Visitor_DisplayConsole implements IVisitor{
 		tab_number--;
 		println("[\\VBODY]");
 	}
+	
 	@Override
 	public void visit(VmgBodyExtended e) {
 		println("[VBODY]");
