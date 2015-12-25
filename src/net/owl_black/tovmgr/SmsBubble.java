@@ -20,7 +20,7 @@ public class SmsBubble extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	static enum BubbleDirection {
+	enum BubbleDirection {
 		BBL_RECEIVED__RIGHT,
 		BBL_SENT__LEFT
 	}
@@ -31,11 +31,11 @@ public class SmsBubble extends JPanel {
 	private BubbleDirection bblDirection;
 	
 	/* Theming. */
-	static Color clConversationBg 	= new Color(238, 238, 238); //Grey light
+	private Color clConversationBg 	= new Color(238, 238, 238); //Grey light
 	
-	static Color clTime;
-	static Color clBbl;
-	static Color clTxtBbl;
+	private Color clTime;
+	private Color clBbl;
+	private Color clTxtBbl;
 	
 	/* Graphical resources. */
 	private JLabel lblDate;
@@ -48,16 +48,29 @@ public class SmsBubble extends JPanel {
 		
 		frame.setSize(400, 200);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBackground(clConversationBg);
+		frame.setBackground(new Color(238, 238, 238));
 		
-		SmsBubble bbl = new SmsBubble(BubbleDirection.BBL_RECEIVED__RIGHT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
+		JPanel pan = new JPanel();
+		pan.setLayout(new BoxLayout(pan, BoxLayout.Y_AXIS));
+		
+		SmsBubble bbl1 = new SmsBubble(BubbleDirection.BBL_RECEIVED__RIGHT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
+				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
+		
+		SmsBubble bbl2 = new SmsBubble(BubbleDirection.BBL_SENT__LEFT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
+				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
+		
+		SmsBubble bbl3 = new SmsBubble(BubbleDirection.BBL_SENT__LEFT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
 				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
 		
 		//FOR DEBUG
 		//bbl.setBorder(BorderFactory.createLineBorder(Color.black));
 		//bbl.setMaximumSize(new Dimension(300, 150));
 		
-		frame.add(bbl);
+		pan.add(bbl1);
+		pan.add(bbl2);
+		pan.add(bbl3);
+		frame.add(pan);
+		
 		frame.setVisible(true);
 	}
 	
@@ -128,9 +141,9 @@ public class SmsBubble extends JPanel {
 	}
 	
 	@Override
-	public void paintComponent(Graphics g) {
+	public void paint(Graphics g) {
 		
-		super.paintComponent(g);
+		
 		
 		Graphics2D graphBubble = (Graphics2D) g;
 		
@@ -176,6 +189,7 @@ public class SmsBubble extends JPanel {
 	    graphBubble.draw(triangle);
 	    graphBubble.fill(triangle);
 	    
+	    super.paint(g);
 	    //FOR DEBUG
 	    //graphics2.setColor(Color.BLUE);
 	};
