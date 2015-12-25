@@ -32,10 +32,10 @@ public class VmgScanner {
 	private int colidx;
 	private BufferedReader bufRin;
 	
-	static String UTF8 = "UTF-8";
-	static String UTF16 = "UTF-16";
-	static String UTF16_LITTLE_ENDIAN = "UTF-16LE";
-	static String UTF16_BIG_ENDIAN = "UTF-16BE";
+	public static String UTF8 = "UTF-8";
+	public static String UTF16 = "UTF-16";
+	public static String UTF16_LITTLE_ENDIAN = "UTF-16LE";
+	public static String UTF16_BIG_ENDIAN = "UTF-16BE";
 	
 	public VmgScanner(File f, String encoding) throws UnsupportedEncodingException {
 		

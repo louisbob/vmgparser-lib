@@ -19,10 +19,10 @@ package net.owl_black.vmgparser;
 
 public class VmgToken {
 	
-	String 			content;
-	VmgTokenType 	type;
-	private int 	_lineidx;
-	private int 	_colidx;
+	String 				content;
+	public VmgTokenType type;
+	private int 		_lineidx;
+	private int 		_colidx;
 	
 	//static String IDENTIFIER
 	
