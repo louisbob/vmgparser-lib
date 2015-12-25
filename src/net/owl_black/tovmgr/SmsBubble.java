@@ -56,8 +56,7 @@ public class SmsBubble extends JPanel {
 		SmsBubble bbl1 = new SmsBubble(BubbleDirection.BBL_RECEIVED__RIGHT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
 				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
 		
-		SmsBubble bbl2 = new SmsBubble(BubbleDirection.BBL_SENT__LEFT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
-				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
+		SmsBubble bbl2 = new SmsBubble(BubbleDirection.BBL_SENT__LEFT, "<html>This is my text message.</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
 		
 		SmsBubble bbl3 = new SmsBubble(BubbleDirection.BBL_SENT__LEFT, "<html>This is my text message. it is super cool to have this kind of super styled tuf"
 				+ "with another style of things lorem ipsum</html>", "<html>Dec. 12/2015, 12:41pm<br> </html>");
@@ -125,7 +124,7 @@ public class SmsBubble extends JPanel {
   	    
   	    //FOR DEBUG
   	    //lblDate.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-  	    //lblMessage.setBorder(BorderFactory.createLineBorder(Color.black, 1));
+  	    lblMessage.setBorder(BorderFactory.createLineBorder(Color.black, 1));
 	}
 	
 	public SmsBubble() {
