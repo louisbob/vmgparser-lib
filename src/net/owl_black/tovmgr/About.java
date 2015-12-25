@@ -49,7 +49,7 @@ public class About {
 		
 		frmAbout = new JFrame();
 		frmAbout.setTitle("About");
-		frmAbout.setIconImage(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/ressources/owlvmg_128x128x32.png")));
+		frmAbout.setIconImage(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/owlvmg_128x128x32.png")));
 		frmAbout.setBounds(100, 100, 395, 631);
 		frmAbout.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmAbout.getContentPane().setLayout(null);
@@ -57,7 +57,7 @@ public class About {
 		
 		JPanel panel = new JPanel();
 		
-		ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/ressources/owlblack3.png"))); 
+		ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/owlblack3.png"))); 
 		JLabel label = new JLabel(); 
 		label.setIcon(icon); 
 		panel.add(label); 

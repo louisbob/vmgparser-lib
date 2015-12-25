@@ -68,7 +68,7 @@ public class CoreGUI implements ActionListener ,ExportListener, ListClickListene
         /* Main window (frame) configuration */
         mainWindow = new JFrame();
         mainWindow.setTitle("The Owl VMG Reader");
-        mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/ressources/owlvmg_128x128x32.png")));
+        mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(About.class.getResource("/owlvmg_128x128x32.png")));
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
         mainWindow.setSize(800, 500);
