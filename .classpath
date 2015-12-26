@@ -5,7 +5,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test_files"/>
 	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="src" path="res"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
 	<classpathentry kind="lib" path="lib/ez-vcard-0.9.8-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
