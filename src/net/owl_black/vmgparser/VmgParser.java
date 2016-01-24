@@ -1,27 +1,20 @@
 package net.owl_black.vmgparser;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.Charsets;
-
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import ezvcard.util.org.apache.commons.codec.DecoderException;
 import ezvcard.util.org.apache.commons.codec.net.QuotedPrintableCodec;
-import net.owl_black.vmgparser.VmgBodyExtended.XIrmcBox;
 
 /* Copyright (c) 2012-2015, Louis-Paul CORDIER
  * All rights reserved.
@@ -336,6 +329,7 @@ public class VmgParser {
 		return new VmgBody(bodyContent);
 	}
 	
+	/*
 	private String streamToString(InputStream in) throws IOException {
 		StringBuilder out = new StringBuilder();
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -343,7 +337,7 @@ public class VmgParser {
 			out.append(line);
 		br.close();
 		return out.toString();
-	}
+	}*/
 	
 	private VmgBodyExtended vmg_body_extended() {
 		VmgProperty vP = null;
@@ -368,7 +362,7 @@ public class VmgParser {
 				vBe.setContent(vP.value);
 			
 			properties.add(vP);
-			System.out.println(vP.toString());
+			//System.out.println(vP.toString());
 		}
 		
 		return vBe;
