@@ -1,11 +1,11 @@
 package net.owl_black.vmgparser;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -15,6 +15,8 @@ import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import ezvcard.util.org.apache.commons.codec.DecoderException;
 import ezvcard.util.org.apache.commons.codec.net.QuotedPrintableCodec;
+import net.owl_black.vmgparser.VmgObj.XIrmcBox;
+import net.owl_black.vmgparser.VmgObj.XIrmcStatus;
 
 /* Copyright (c) 2012-2015, Louis-Paul CORDIER
  * All rights reserved.
@@ -43,12 +45,39 @@ public class VmgParser {
 	VCard			vcard;
 	boolean			parseVBody;
 	
+	
+	DateTimeFormatter[] date_patterns = 
+		{
+			DateTimeFormatter.ofPattern("yyyy"),
+			DateTimeFormatter.ofPattern("d.M.yyyy H:m:s"),
+			DateTimeFormatter.ofPattern("M.d.yyyy H:m:s"),
+			
+			DateTimeFormatter.ofPattern("yyyy.d.M.H:m:s"),
+			DateTimeFormatter.ofPattern("yyyy.d.M.H:m:s"),
+			
+			DateTimeFormatter.ofPattern("yyyy.M.d.H.m.s"),
+			DateTimeFormatter.ofPattern("yyyy.M.d.H.m.s'Z'"),
+			
+			DateTimeFormatter.ofPattern("yyyy.d.M.H.m.s"),
+			DateTimeFormatter.ofPattern("yyyy.d.M.H.m.s'Z'"),
+			};
+			
+	
 	private static Logger log = Logger.getLogger(VmgParser.class.getName());
 	
-	public VmgParser(File f, String encoding) throws UnsupportedEncodingException {
+	public VmgParser(File f, String encoding) throws UnsupportedEncodingException, FileNotFoundException {
+		if(f == null)
+			throw new NullPointerException("Given file is null");
+		
+		if(!f.exists())
+			throw new FileNotFoundException("Provided VMG file does not exist.");
+		
 		lexer = new VmgLexer(f, encoding);
 		env_stack = new Stack<String>();
 		opt_stack = new Stack<String>();
+		
+		//Initialize the list of Date parser.
+		
 	}
 	
 	private void expect(VmgTokenType toktype) {
@@ -339,6 +368,8 @@ public class VmgParser {
 		return out.toString();
 	}*/
 	
+	
+	
 	private VmgBodyExtended vmg_body_extended() {
 		VmgProperty vP = null;
 		
@@ -348,7 +379,8 @@ public class VmgParser {
 		
 		while( (vP = vmg_property(true)) != null) {
 			
-			if((vP.params != null) && (vP.params.quoted_printable)) {
+			if((vP.params != null) && (vP.params.quoted_printable)) 
+			{
 				//Process quoted printable:
 				try {
 					vP.value = decoder.decode(vP.value);
@@ -358,8 +390,33 @@ public class VmgParser {
 				}
 			}
 			
-			if(vP.name.equals("TEXT"))
+			
+			if(vP.name.equalsIgnoreCase("TEXT")) //Retrieve text from the VMG
+			{
 				vBe.setContent(vP.value);
+			}
+			else if(vP.name.equalsIgnoreCase("DATE")) 			//Retrieve date from the VMG.
+			{
+				boolean date_parse_suceed = false;
+				for(DateTimeFormatter dtf : date_patterns)
+				{
+					try{
+						LocalDateTime lDate = LocalDateTime.parse(vP.value, dtf);
+						vBe.setDate(lDate);
+						date_parse_suceed = true;
+						break;
+					}
+					catch(DateTimeParseException e)
+					{
+					}
+				}
+				
+				if(!date_parse_suceed)
+				{
+					log.warning("Can't parse date.");
+				}
+				
+			}
 			
 			properties.add(vP);
 			//System.out.println(vP.toString());
@@ -434,7 +491,37 @@ public class VmgParser {
 		// <vmessage-property>*
 		//Get the list of properties in order to modify it. There is at least one property: the version.
 		
-		while( (vP = vmg_property(false)) != null) {
+		while( (vP = vmg_property(false)) != null) 
+		{
+			
+			if(vP.name.equalsIgnoreCase("X-IRMC-BOX"))
+			{
+				//Parse Inbox/Outbox values.
+				if(vP.value.equalsIgnoreCase("SENTBOX"))
+				{
+					vmg.setXIBox(XIrmcBox.SENTBOX);
+				}
+				else if(vP.value.equalsIgnoreCase("INBOX"))
+				{
+					vmg.setXIBox(XIrmcBox.INBOX);
+				}
+				else if(vP.value.equalsIgnoreCase("OUTBOX"))
+				{
+					vmg.setXIBox(XIrmcBox.OUTBOX);
+				}
+			}
+			else if(vP.name.equalsIgnoreCase("X-IRMC-STATUS"))
+			{
+				if(vP.value.equalsIgnoreCase("READ"))
+				{
+					vmg.setXIStatus(XIrmcStatus.READ);
+				}
+				else if(vP.value.equalsIgnoreCase("UNREAD"))
+				{
+					vmg.setXIStatus(XIrmcStatus.UNREAD);
+				}
+			}
+			
 			vObjPro.add(vP);
 			//System.out.println(vP.toString());
 		}

@@ -1,7 +1,8 @@
 package net.owl_black.vmgparser;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /* Copyright (c) 2012-2015, Louis-Paul CORDIER
@@ -25,18 +26,9 @@ public class VmgBodyExtended extends VmgBody {
 	
 	private List<VmgProperty> vProp;
 	
-	public enum XIrmcStatus {
-		UNREAD, READ
-	}
 	
-	public enum XIrmcBox {
-		INBOX, OUTBOX, SENTBOX
-	}
-	
-	private XIrmcStatus XIStatus;
-	private XIrmcBox 	XIBox;
-	private Calendar	date;
-	private String		content;
+	private LocalDateTime	date;
+	private String			content;
 	
 	public VmgBodyExtended() {
 		setvProp(new ArrayList<VmgProperty>());
@@ -45,9 +37,7 @@ public class VmgBodyExtended extends VmgBody {
 	@Override
 	public String toString() {
 		
-		String ret = "Status   :    " + XIStatus.name() +
-				"\nBox   :    " + XIBox.name() + 
-				"\nContent   :" + content;
+		String ret = "Content   :" + content;
 		
 		
 		ret += "\n";
@@ -58,28 +48,12 @@ public class VmgBodyExtended extends VmgBody {
 	/*
 	 * Getter and Setters
 	 */
-	
-	public XIrmcStatus getXIStatus() {
-		return XIStatus;
-	}
 
-	public void setXIStatus(XIrmcStatus xIStatus) {
-		XIStatus = xIStatus;
-	}
-
-	public XIrmcBox getXIBox() {
-		return XIBox;
-	}
-
-	public void setXIBox(XIrmcBox xIBox) {
-		XIBox = xIBox;
-	}
-
-	public Calendar getDate() {
+	public LocalDateTime getDate() {
 		return date;
 	}
 
-	public void setDate(Calendar date) {
+	public void setDate(LocalDateTime date) {
 		this.date = date;
 	}
 

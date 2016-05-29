@@ -3,8 +3,11 @@ package net.owl_black.vmgparser_test;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -49,11 +52,14 @@ public class TestVmgParser {
 			return Arrays.asList(new Object[][] {/*
 				{"junit\\1_wrong_vmg_version.vmg", VmgScanner.UTF8, false},
 				{"junit\\2_bad_linefeed.vmg", VmgScanner.UTF8, true},
-				{"junit\\2_bad_linefeed2_+351253471692_Tento.vmg", VmgScanner.UTF8, true},
-				{"D:\\louisbob\\programming\\Resources\\smspapa\\+33608898623_Bonjo_001.vmg", VmgScanner.UTF8, true},*/
-				{"D:\\louisbob\\programming\\Resources\\VMG files\\chinese_filename.vmg", VmgScanner.UTF16_LITTLE_ENDIAN, true},
+				{"junit\\2_bad_linefeed2_+351253471692_Tento.vmg", VmgScanner.UTF8, true},*/
+				//{"D:\\louisbob\\programming\\Resources\\smspapa\\+33608898623_Bonjo_001.vmg", VmgScanner.UTF8, true},
+				//{"D:\\louisbob\\programming\\Resources\\smspapa\\+33614763909_Un pe.vmg", VmgScanner.UTF8, true},
+				//{"D:\\louisbob\\programming\\Resources\\smspapa\\+33668637157_Je l'.vmg", VmgScanner.UTF8, true},
+				{"D:\\louisbob\\programming\\Resources\\VMG Files\\michel_drujon\\Outbox\\20150620132500_Lisa.vmg", VmgScanner.UTF8, true},
+				//{"D:\\louisbob\\programming\\Resources\\VMG Files\\aabid\\20130403153459_+919870046620.vmg", VmgScanner.UTF8, true},
 				
-		         //{"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8},
+		        // {"D:\\louisbob\\programming\\Resources\\VMG files\\+351253471692_Tento_2.vmg", VmgScanner.UTF8, true},
 				/*
 		         {"D:\\louisbob\\programming\\Resources\\VMG files\\chinese_filename.vmg", VmgScanner.UTF16_LITTLE_ENDIAN},
 		         {"D:\\louisbob\\programming\\Resources\\VMG files\\Cal TW\\�?�涵 _2010-11-08(2).vmg", VmgScanner.UTF16_LITTLE_ENDIAN},
@@ -65,7 +71,7 @@ public class TestVmgParser {
 		}
 		
 		//Constructor
-		public TestVmgParser(String file_path, String file_encoding, boolean test_must_success) throws UnsupportedEncodingException {
+		public TestVmgParser(String file_path, String file_encoding, boolean test_must_success) throws UnsupportedEncodingException, FileNotFoundException {
 			_inputFile = file_path;
 			File f = new File(file_path);
 			parser = new VmgParser(f, file_encoding);
@@ -73,7 +79,7 @@ public class TestVmgParser {
 		}
 		
 		@Test
-		public void testVmgParser() throws IOException {
+		public void testVmgParser() throws IOException {			
 			
 			System.out.println("============= PARSING : " + _inputFile + "\n");
 			VmgObj myVmg = parser.vmg_object(true);

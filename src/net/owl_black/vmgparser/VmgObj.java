@@ -23,9 +23,22 @@ import ezvcard.VCard;
  * along with vmgparser library.  If not, see <http://www.gnu.org/licenses/>. */
 
 public class VmgObj implements IVisitable {
+	
+	public enum XIrmcStatus {
+		UNREAD, READ
+	}
+	
+	public enum XIrmcBox {
+		INBOX, OUTBOX, SENTBOX
+	}
+	
+	private XIrmcStatus 	XIStatus;
+	private XIrmcBox 		XIBox;
+	
 	private List<VmgProperty>	vProp;
 	private List<VCard>			vOriginator; //[Optionnal]
 	private VmgEnvelope			vEnv;
+	
 	
 	public VmgObj() {
 		//In a vmg file, there is at least one property : the version number.
@@ -63,5 +76,21 @@ public class VmgObj implements IVisitable {
 
 	public void setvEnv(VmgEnvelope vEnv) {
 		this.vEnv = vEnv;
+	}
+	
+	public XIrmcStatus getXIStatus() {
+		return XIStatus;
+	}
+
+	public void setXIStatus(XIrmcStatus xIStatus) {
+		XIStatus = xIStatus;
+	}
+
+	public XIrmcBox getXIBox() {
+		return XIBox;
+	}
+
+	public void setXIBox(XIrmcBox xIBox) {
+		XIBox = xIBox;
 	}
 }
